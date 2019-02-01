@@ -1,4 +1,4 @@
-package com.example.mobileapplication;
+package ca.uw.ece.mobileapplication;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;

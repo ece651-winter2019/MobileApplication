@@ -1,4 +1,4 @@
-package com.example.mobileapplication;
+package ca.uw.ece.mobileapplication;
 
 import org.junit.Test;
 

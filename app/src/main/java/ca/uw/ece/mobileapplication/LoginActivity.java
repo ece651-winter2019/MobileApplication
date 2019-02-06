@@ -24,19 +24,15 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
 /**
- * A login screen that offers login via email/password.
+ * A login screen that offers login via Username/password.
  */
 //public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 public class LoginActivity extends FragmentActivity implements DownloadCallback {
-
-    /**
-     * Id to identity READ_CONTACTS permission request.
-     */
-    private static final int REQUEST_READ_CONTACTS = 0;
 
     /** Reference to the TextView showing fetched data, so we can clear it with a button
     * as necessary.
@@ -72,6 +68,9 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private String username;
+    private String password;
+    private String baseUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,8 +96,25 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
         mSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
+                try {
 
-                attemptLogin();
+                    username = mUsernameView.getText().toString();
+                    password = mPasswordView.getText().toString();
+                    baseUrl = "http://192.168.92.52:8080/api/tutorial/1.0/employees";
+                    HttpApiClient httpApiClient;
+                    httpApiClient = new HttpApiClient(
+                            baseUrl
+                            , username
+                            , password
+                    );
+
+                    AsyncTask<Void, Void, String> execute = new ExecuteNetworkOperation(httpApiClient);
+                    execute.execute();
+                } catch (Exception ex) {
+                }
+            }
+/*
+            attemptLogin();
                 //mNetworkFragment.startDownload();
 
                 if (!mDownloading && mNetworkFragment != null) {
@@ -107,6 +123,7 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
                         mDownloading = true;
                 }
             }
+*/
         });
 
         mLoginFormView = findViewById(R.id.login_form);
@@ -122,6 +139,58 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
         return;
     }
 
+    /**
+     * This subclass handles the network operations in a new thread.
+     * It starts the progress bar, makes the API call, and ends the progress bar.
+     */
+    public class ExecuteNetworkOperation extends AsyncTask<Void, Void, String> {
+
+        private HttpApiClient apiAuthenticationClient;
+        private String isValidCredentials;
+
+        /**
+         * Overload the constructor to pass objects to this class.
+         */
+        public ExecuteNetworkOperation(HttpApiClient apiAuthenticationClient) {
+            this.apiAuthenticationClient = apiAuthenticationClient;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            // Display the progress bar.
+            //findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            try {
+                isValidCredentials = apiAuthenticationClient.execute();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            // Hide the progress bar.
+            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+
+            // Login Success
+            if (isValidCredentials.equals("true")) {
+                //goToSecondActivity();
+            }
+            // Login Failure
+            else {
+                Toast.makeText(getApplicationContext(), "Login Failed", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
 
     /**
      * Attempts to sign in or register the account specified by the login form.

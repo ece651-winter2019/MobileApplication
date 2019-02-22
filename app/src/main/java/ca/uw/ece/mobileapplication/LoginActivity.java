@@ -100,13 +100,17 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
 
                     username = mUsernameView.getText().toString();
                     password = mPasswordView.getText().toString();
-                    baseUrl = "http://192.168.92.52:8080/api/tutorial/1.0/employees";
+                    baseUrl = "http://192.168.92.210:6543/";
                     HttpApiClient httpApiClient;
                     httpApiClient = new HttpApiClient(
                             baseUrl
                             , username
                             , password
                     );
+
+                    httpApiClient.setHttpMethod("POST");
+                    httpApiClient.setUrlResource("Records");
+                    httpApiClient.setUrlPath("userID=tliu");
 
                     AsyncTask<Void, Void, String> execute = new ExecuteNetworkOperation(httpApiClient);
                     execute.execute();

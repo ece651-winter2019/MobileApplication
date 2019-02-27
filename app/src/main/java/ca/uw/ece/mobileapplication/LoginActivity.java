@@ -26,13 +26,28 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
+
 import java.util.List;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+
 
 /**
  * A login screen that offers login via Username/password.
  */
 //public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
-public class LoginActivity extends FragmentActivity implements DownloadCallback {
+public class LoginActivity extends FragmentActivity {
 
     /** Reference to the TextView showing fetched data, so we can clear it with a button
     * as necessary.
@@ -45,11 +60,6 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
      */
 
     private boolean mDownloading = false;
-    /**
-     *     Keep a reference to the NetworkFragment which owns the AsyncTask object
-     *     that is used to execute network ops.
-      */
-    private NetworkFragment mNetworkFragment;
 
     /**
      * A dummy authentication store containing known user names and passwords.
@@ -61,7 +71,7 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+ //   private UserLoginTask mAuthTask = null;
 
     // UI references.
     private AutoCompleteTextView mUsernameView;
@@ -71,6 +81,7 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
     private String username;
     private String password;
     private String baseUrl;
+    private String httpmethod;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +96,7 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    //attemptLogin();
                     return true;
                 }
                 return false;
@@ -100,20 +111,20 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
 
                     username = mUsernameView.getText().toString();
                     password = mPasswordView.getText().toString();
-                    baseUrl = "http://192.168.92.210:6543/";
-                    HttpApiClient httpApiClient;
-                    httpApiClient = new HttpApiClient(
+                    baseUrl = "http://192.168.101.105:6543/records/tliu";
+                    httpmethod = "GET";
+                    HttpApiClient httpApiClient = new HttpApiClient(
                             baseUrl
                             , username
                             , password
+                            , httpmethod
                     );
 
-                    httpApiClient.setHttpMethod("POST");
-                    httpApiClient.setUrlResource("Records");
-                    httpApiClient.setUrlPath("userID=tliu");
+                    httpApiClient.setUrlResource("records");
+                    httpApiClient.setUrlPath("tliu");
+                    AsyncTask<String, Void, String> execute = new ExecuteNetworkOperation();
+                    execute.execute(baseUrl.toString());
 
-                    AsyncTask<Void, Void, String> execute = new ExecuteNetworkOperation(httpApiClient);
-                    execute.execute();
                 } catch (Exception ex) {
                 }
             }
@@ -135,283 +146,130 @@ public class LoginActivity extends FragmentActivity implements DownloadCallback 
 
         mDataText = (TextView) findViewById(R.id.data_text);
 
-        mNetworkFragment = NetworkFragment.getInstance(getSupportFragmentManager(), "http://192.168.92.52:8080/api/tutorial/1.0/employees");
-
     }
 
     private void populateAutoComplete() {
         return;
     }
 
+    private JSONObject buidJsonObject() throws JSONException {
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.accumulate("patient","1");
+        jsonObject.accumulate("systolic","120");
+        jsonObject.accumulate("diastolic","80");
+        jsonObject.accumulate("heartRate","90");
+
+        return jsonObject;
+    }
+
+    private void setPostRequestContent(HttpURLConnection conn, JSONObject jsonObject) throws IOException {
+
+        OutputStream os = conn.getOutputStream();
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+        writer.write(jsonObject.toString());
+        writer.flush();
+        writer.close();
+        os.close();
+    }
+
+    private String httpAPI(String myUrl, String method) throws IOException, JSONException {
+        String result = "";
+
+        URL url = new URL(myUrl);
+
+        // 1. create HttpURLConnection
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod(method);
+        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+
+        // 2. build JSON object
+        JSONObject jsonObject = buidJsonObject();
+
+        // 3. add JSON content to POST request body
+        setPostRequestContent(conn, jsonObject);
+
+        // 4. make POST request to the given URL
+        conn.connect();
+
+        // 5. return response message
+        return conn.getResponseMessage()+"";
+
+    }
     /**
      * This subclass handles the network operations in a new thread.
      * It starts the progress bar, makes the API call, and ends the progress bar.
      */
-    public class ExecuteNetworkOperation extends AsyncTask<Void, Void, String> {
 
-        private HttpApiClient apiAuthenticationClient;
-        private String isValidCredentials;
-
-        /**
-         * Overload the constructor to pass objects to this class.
-         */
-        public ExecuteNetworkOperation(HttpApiClient apiAuthenticationClient) {
-            this.apiAuthenticationClient = apiAuthenticationClient;
-        }
-
+    private class ExecuteNetworkOperation extends AsyncTask<String, Void, String> {
         @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            // Display the progress bar.
-            //findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
+        protected String doInBackground(String... urls) {
+            // params comes from the execute() call: params[0] is the url.
             try {
-                isValidCredentials = apiAuthenticationClient.execute();
-            } catch (Exception e) {
-                e.printStackTrace();
+                try {
+                    return httpAPI(urls[0], "GET");
+                } catch (JSONException e) {
+                    return "Error!";
+                }
+            } catch (IOException e) {
+                return "Unable to retrieve web page. URL may be invalid.";
             }
-
-            return null;
         }
-
+        // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-
-            // Hide the progress bar.
-            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-
-            // Login Success
-            if (isValidCredentials.equals("true")) {
-                //goToSecondActivity();
-            }
-            // Login Failure
-            else {
-                Toast.makeText(getApplicationContext(), "Login Failed", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
-     */
-    private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-
-        // Reset errors.
-        mUsernameView.setError(null);
-        mPasswordView.setError(null);
-
-        // Store values at the time of the login attempt.
-        String username = mUsernameView.getText().toString();
-        String password = mPasswordView.getText().toString();
-
-        boolean cancel = false;
-        View focusView = null;
-
-        // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
-            cancel = true;
-        }
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(username)) {
-            mUsernameView.setError(getString(R.string.error_field_required));
-            focusView = mUsernameView;
-            cancel = true;
-        } else if (!isUsernameValid(username)) {
-            mUsernameView.setError(getString(R.string.error_invalid_username));
-            focusView = mUsernameView;
-            cancel = true;
-        }
-
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView.requestFocus();
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
-            mAuthTask = new UserLoginTask(username, password);
-            mAuthTask.execute((Void) null);
-        }
-    }
-
-    private boolean isUsernameValid(String username) {
-        //TODO: Replace this with your own logic
-        return true;
-    }
-
-    private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
-        return password.length() > 4;
-    }
-
-    /**
-     * Shows the progress UI and hides the login form.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
-
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
-    }
-
-    private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<>(LoginActivity.this,
-                        android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
-
-        mUsernameView.setAdapter(adapter);
-    }
-
-    @Override
-    public void updateFromDownload(String result) {
-        if (result != null) {
             mDataText.setText(result);
-        } else {
-            mDataText.setText(getString(R.string.connection_error));
         }
     }
+//    public class ExecuteNetworkOperation extends AsyncTask<Void, Void, String> {
+//
+//        private HttpApiClient apiAuthenticationClient;
+//        private String isValidCredentials;
+//
+//        /**
+//         * Overload the constructor to pass objects to this class.
+//         */
+//        public ExecuteNetworkOperation(HttpApiClient apiAuthenticationClient) {
+//            this.apiAuthenticationClient = apiAuthenticationClient;
+//        }
+//
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//
+//            // Display the progress bar.
+//            findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
+//        }
+//
+//        @Override
+//        protected String doInBackground(Void... params) {
+//            try {
+//                isValidCredentials = apiAuthenticationClient.execute();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String result) {
+//            super.onPostExecute(result);
+//
+//            // Hide the progress bar.
+//            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
+//
+//            // Login Success
+//            if (isValidCredentials.equals("true")) {
+//                //goToSecondActivity();
+//            }
+//            // Login Failure
+//            else {
+//                Toast.makeText(getApplicationContext(), "Login Failed", Toast.LENGTH_LONG).show();
+//            }
+//        }
+//    }
 
-    @Override
-    public NetworkInfo getActiveNetworkInfo() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return networkInfo;
-    }
 
-    @Override
-    public void onProgressUpdate(int progressCode, int percentComplete) {
-        switch(progressCode) {
-            // You can add UI behavior for progress updates here.
-            case Progress.ERROR:
-                break;
-            case Progress.CONNECT_SUCCESS:
-                break;
-            case Progress.GET_INPUT_STREAM_SUCCESS:
-                break;
-            case Progress.PROCESS_INPUT_STREAM_IN_PROGRESS:
-                mDataText.setText("" + percentComplete + "%");
-                break;
-            case Progress.PROCESS_INPUT_STREAM_SUCCESS:
-                break;
-        }
-    }
-
-    @Override
-    public void finishDownloading() {
-        mDownloading = false;
-        if (mNetworkFragment != null) {
-            mNetworkFragment.cancelDownload();
-        }
-
-    }
-
-    private interface ProfileQuery {
-        String[] PROJECTION = {
-                ContactsContract.CommonDataKinds.Email.ADDRESS,
-                ContactsContract.CommonDataKinds.Email.IS_PRIMARY,
-        };
-
-        int ADDRESS = 0;
-        int IS_PRIMARY = 1;
-    }
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mUsername;
-        private final String mPassword;
-
-        UserLoginTask(String username, String password) {
-            mUsername = username;
-            mPassword = password;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
-
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mUsername)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-            // TODO: register the new account here.
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                //finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
-
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
-    }
 }
 

@@ -111,7 +111,6 @@ public class LoginActivity extends FragmentActivity {
 
                     username = mUsernameView.getText().toString();
                     password = mPasswordView.getText().toString();
-                    baseUrl = "http://192.168.101.105:6543/records/tliu";
                     httpmethod = "GET";
                     HttpApiClient httpApiClient = new HttpApiClient(
                             baseUrl
@@ -185,15 +184,18 @@ public class LoginActivity extends FragmentActivity {
 
         // 2. build JSON object
         JSONObject jsonObject = buidJsonObject();
+        if ( method.equals("POST")) {
+            // 2. build JSON object
+            JSONObject jsonObject = buidJsonObject();
 
-        // 3. add JSON content to POST request body
-        setPostRequestContent(conn, jsonObject);
-
-        // 4. make POST request to the given URL
+            // 3. add JSON content to POST request body
+            setPostRequestContent(conn, jsonObject);
+        }
+        // 4. make request to the given URL
         conn.connect();
 
         // 5. return response message
-        return conn.getResponseMessage()+"";
+        return conn.getResponseMessage()+ "";
 
     }
     /**

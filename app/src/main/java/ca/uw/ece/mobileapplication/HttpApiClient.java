@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -16,6 +17,8 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by user on 12/8/17.
@@ -39,14 +42,15 @@ public class HttpApiClient {
      * @param baseUrl String
      * @param username String
      * @param password String
+     * @param httpmethod String
      */
-    public HttpApiClient(String  baseUrl, String username, String password) {
+    public HttpApiClient(String  baseUrl, String username, String password, String httpmethod) {
         setBaseUrl(baseUrl);
         this.username = username;
         this.password = password;
         this.urlResource = "";
         this.urlPath = "";
-        this.httpMethod = "GET";
+        this.httpMethod = httpmethod;
         parameters = new HashMap<>();
         lastResponse = "";
         payload = "";
@@ -134,6 +138,17 @@ public class HttpApiClient {
     public HttpApiClient setParameter(String key, String value) {
         this.parameters.put(key, value);
         return this;
+    }
+
+    private JSONObject buidJsonObject() throws JSONException {
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.accumulate("patient","1");
+        jsonObject.accumulate("systolic","120");
+        jsonObject.accumulate("diastolic","80");
+        jsonObject.accumulate("heartRate","90");
+
+        return jsonObject;
     }
 
     /**
@@ -246,21 +261,22 @@ public class HttpApiClient {
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(httpMethod);
-            connection.setRequestProperty("Authorization", "Basic " + encoding);
+            //connection.setRequestProperty("Authorization", "Basic " + encoding);
             connection.setRequestProperty("Accept", "application/json");
-            connection.setRequestProperty("Content-Type", "text/plain");
+            connection.setRequestProperty("Content-Type", "application/json");
+            JSONObject jsonObject = buidJsonObject();
 
             // Make the network connection and retrieve the output from the server.
             if (httpMethod.equals("POST") || httpMethod.equals("PUT")) {
 
                 payload = getPayloadAsString();
 
-                connection.setDoInput(true);
                 connection.setDoOutput(true);
 
                 try {
-                    OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
-                    writer.write(payload);
+                    OutputStreamWriter os = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
+                    os.write(jsonObject.toString());
+                    connection.connect();
 
                     headerFields = connection.getHeaderFields();
 
@@ -269,9 +285,19 @@ public class HttpApiClient {
                         outputStringBuilder.append(line);
                     }
                 } catch (Exception ex) {}
-                connection.disconnect();
             }
             else {
+                // Timeout for reading InputStream arbitrarily set to 3000ms.
+                connection.setReadTimeout(3000);
+                // Timeout for connection.connect() arbitrarily set to 3000ms.
+                connection.setConnectTimeout(3000);
+                connection.setDoInput(true);
+                // Open communications link (network traffic occurs here).
+                connection.connect();
+                int responseCode = connection.getResponseCode();
+                if (responseCode != HttpsURLConnection.HTTP_OK) {
+                    throw new IOException("HTTP error code: " + responseCode);
+                }
                 InputStream content = (InputStream) connection.getInputStream();
 
                 headerFields = connection.getHeaderFields();
@@ -283,6 +309,8 @@ public class HttpApiClient {
                     outputStringBuilder.append(line);
                 }
             }
+            connection.disconnect();
+
         } catch (Exception e) {
             e.printStackTrace();
         }

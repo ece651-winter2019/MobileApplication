@@ -44,10 +44,10 @@ import java.net.URL;
 
 
 /**
- * A login screen that offers login via Username/password.
+ * A Signup screen that offers Signup via Username/password.
  */
-//public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
-public class LoginActivity extends FragmentActivity {
+//public class SignupActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
+public class SignupActivity extends FragmentActivity {
 
     /** Reference to the TextView showing fetched data, so we can clear it with a button
     * as necessary.
@@ -69,9 +69,9 @@ public class LoginActivity extends FragmentActivity {
             "uwaterloo.ca:hello", "uwaterloo.ca:world"
     };
     /**
-     * Keep track of the login task to ensure we can cancel it if requested.
+     * Keep track of the Signup task to ensure we can cancel it if requested.
      */
- //   private UserLoginTask mAuthTask = null;
+ //   private UserSignupTask mAuthTask = null;
 
     // UI references.
     private AutoCompleteTextView mUsernameView;

@@ -1,5 +1,5 @@
 # Mobile Application Architecture Design
-![Mobile Application Architecture Design](Images/mobile_app_architecture.png)
+![Mobile Application Architecture Design](mobile_app_architecture.png)
 
 # Mobile/Server Communication Protocol
 Mobile App will use HTTP protocol to communication with server. On server side there is a HTTP API processor module will process the requests sent from Mobile App.

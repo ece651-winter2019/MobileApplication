@@ -1,46 +1,20 @@
 package ca.uw.ece.mobileapplication;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
-import android.net.NetworkInfo;
 import android.support.v4.app.FragmentActivity;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.content.Context;
-
 import android.os.AsyncTask;
-
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
-
-import java.util.List;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 
 
 /**
@@ -82,6 +56,7 @@ public class SignupActivity extends FragmentActivity {
     private String password;
     private String baseUrl;
     private String httpmethod;
+    private HttpComm http_comm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,18 +86,18 @@ public class SignupActivity extends FragmentActivity {
 
                     username = mUsernameView.getText().toString();
                     password = mPasswordView.getText().toString();
-                    baseUrl = "http://192.168.92.52:6543/records/tliu";
+                    baseUrl = "http://192.168.101.105:6543/records/tliu";
                     httpmethod = "GET";
-                    HttpApiClient httpApiClient = new HttpApiClient(
+                    HttpComm http_comm = new HttpComm(
                             baseUrl
                             , username
                             , password
                             , httpmethod
                     );
 
-                    httpApiClient.setUrlResource("records");
-                    httpApiClient.setUrlPath("tliu");
-                    AsyncTask<String, Void, String> execute = new ExecuteNetworkOperation();
+                    http_comm.setUrlResource("records");
+                    http_comm.setUrlPath("tliu");
+                    AsyncTask<String, Void, String> execute = new ExecuteNetworkOperation(http_comm);
                     execute.execute(baseUrl.toString());
 
                 } catch (Exception ex) {
@@ -152,63 +127,71 @@ public class SignupActivity extends FragmentActivity {
         return;
     }
 
-    private JSONObject buidJsonObject() throws JSONException {
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.accumulate("patient","1");
-        jsonObject.accumulate("systolic","120");
-        jsonObject.accumulate("diastolic","80");
-        jsonObject.accumulate("heartRate","90");
-
-        return jsonObject;
-    }
-
-    private void setPostRequestContent(HttpURLConnection conn, JSONObject jsonObject) throws IOException {
-
-        OutputStream os = conn.getOutputStream();
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-        writer.write(jsonObject.toString());
-        writer.flush();
-        writer.close();
-        os.close();
-    }
-
-    private String httpAPI(String myUrl, String method) throws IOException, JSONException {
-        String result = "";
-
-        URL url = new URL(myUrl);
-
-        // 1. create HttpURLConnection
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod(method);
-        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-
-        if ( method.equals("POST")) {
-            // 2. build JSON object
-            JSONObject jsonObject = buidJsonObject();
-
-            // 3. add JSON content to POST request body
-            setPostRequestContent(conn, jsonObject);
-        }
-        // 4. make request to the given URL
-        conn.connect();
-
-        // 5. return response message
-        return conn.getResponseMessage()+ "";
-
-    }
+//    private JSONObject buidJsonObject() throws JSONException {
+//
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.accumulate("patient","1");
+//        jsonObject.accumulate("systolic","120");
+//        jsonObject.accumulate("diastolic","80");
+//        jsonObject.accumulate("heartRate","90");
+//
+//        return jsonObject;
+//    }
+//
+//    private void setPostRequestContent(HttpURLConnection conn, JSONObject jsonObject) throws IOException {
+//
+//        OutputStream os = conn.getOutputStream();
+//        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+//        writer.write(jsonObject.toString());
+//        writer.flush();
+//        writer.close();
+//        os.close();
+//    }
+//
+//    private String httpAPI(String myUrl, String method) throws IOException, JSONException {
+//        String result = "";
+//
+//        URL url = new URL(myUrl);
+//
+//        // 1. create HttpURLConnection
+//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//        conn.setRequestMethod(method);
+//        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+//
+//        if ( method.equals("POST")) {
+//            // 2. build JSON object
+//            JSONObject jsonObject = buidJsonObject();
+//
+//            // 3. add JSON content to POST request body
+//            setPostRequestContent(conn, jsonObject);
+//        }
+//        // 4. make request to the given URL
+//        conn.connect();
+//
+//        // 5. return response message
+//        return conn.getResponseMessage()+ "";
+//
+//    }
     /**
      * This subclass handles the network operations in a new thread.
      * It starts the progress bar, makes the API call, and ends the progress bar.
      */
 
     private class ExecuteNetworkOperation extends AsyncTask<String, Void, String> {
+        HttpComm signup_http_comm;
+        /**
+         * Overload the constructor to pass objects to this class.
+         */
+        public ExecuteNetworkOperation(HttpComm http_comm) {
+            this.signup_http_comm = http_comm;
+        }
+
         @Override
         protected String doInBackground(String... urls) {
             // params comes from the execute() call: params[0] is the url.
             try {
                 try {
-                    return httpAPI(urls[0], "GET");
+                    return signup_http_comm.httpAPI();
                 } catch (JSONException e) {
                     return "Error!";
                 }

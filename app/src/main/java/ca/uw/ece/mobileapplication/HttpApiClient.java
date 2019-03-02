@@ -230,16 +230,16 @@ public class HttpApiClient {
             stringBuffer.append(pair.getKey()).append("=").append(pair.getValue());
 
             it.remove(); // avoids a ConcurrentModificationException
-            count++;
+            count++;   /**
+             * Make the call to the Rest API and return its response as a string.
+             * @return String
+             */
+
         }
         return stringBuffer.toString();
     }
 
-    /**
-     * Make the call to the Rest API and return its response as a string.
-     * @return String
-     */
-    public String execute() {
+     public String execute() {
         String line;
         StringBuilder outputStringBuilder = new StringBuilder();
 

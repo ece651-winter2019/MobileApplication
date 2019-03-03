@@ -57,6 +57,7 @@ public class SignupActivity extends FragmentActivity {
     private String baseUrl;
     private String httpmethod;
     private HttpComm http_comm;
+    private JSONObject jsondata;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,34 +87,20 @@ public class SignupActivity extends FragmentActivity {
 
                     username = mUsernameView.getText().toString();
                     password = mPasswordView.getText().toString();
-                    baseUrl = "http://192.168.101.105:6543/records/tliu";
-                    httpmethod = "GET";
+                    //baseUrl = "http://192.168.92.210:6543/signup";
+                    httpmethod = "POST";
+                    jsondata = buidJsonObject();
                     HttpComm http_comm = new HttpComm(
-                            baseUrl
-                            , username
-                            , password
-                            , httpmethod
+                        httpmethod, jsondata
                     );
 
-                    http_comm.setUrlResource("records");
-                    http_comm.setUrlPath("tliu");
+                    http_comm.setUrlResource("signup");
                     AsyncTask<String, Void, String> execute = new ExecuteNetworkOperation(http_comm);
-                    execute.execute(baseUrl.toString());
+                    execute.execute();
 
                 } catch (Exception ex) {
                 }
             }
-/*
-            attemptLogin();
-                //mNetworkFragment.startDownload();
-
-                if (!mDownloading && mNetworkFragment != null) {
-                        // Execute the async download.
-                        mNetworkFragment.startDownload();
-                        mDownloading = true;
-                }
-            }
-*/
         });
 
         mLoginFormView = findViewById(R.id.login_form);
@@ -126,52 +113,15 @@ public class SignupActivity extends FragmentActivity {
     private void populateAutoComplete() {
         return;
     }
+    private JSONObject buidJsonObject() throws JSONException {
 
-//    private JSONObject buidJsonObject() throws JSONException {
-//
-//        JSONObject jsonObject = new JSONObject();
-//        jsonObject.accumulate("patient","1");
-//        jsonObject.accumulate("systolic","120");
-//        jsonObject.accumulate("diastolic","80");
-//        jsonObject.accumulate("heartRate","90");
-//
-//        return jsonObject;
-//    }
-//
-//    private void setPostRequestContent(HttpURLConnection conn, JSONObject jsonObject) throws IOException {
-//
-//        OutputStream os = conn.getOutputStream();
-//        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-//        writer.write(jsonObject.toString());
-//        writer.flush();
-//        writer.close();
-//        os.close();
-//    }
-//
-//    private String httpAPI(String myUrl, String method) throws IOException, JSONException {
-//        String result = "";
-//
-//        URL url = new URL(myUrl);
-//
-//        // 1. create HttpURLConnection
-//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//        conn.setRequestMethod(method);
-//        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-//
-//        if ( method.equals("POST")) {
-//            // 2. build JSON object
-//            JSONObject jsonObject = buidJsonObject();
-//
-//            // 3. add JSON content to POST request body
-//            setPostRequestContent(conn, jsonObject);
-//        }
-//        // 4. make request to the given URL
-//        conn.connect();
-//
-//        // 5. return response message
-//        return conn.getResponseMessage()+ "";
-//
-//    }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.accumulate("username",username);
+        jsonObject.accumulate("password",password);
+
+        return jsonObject;
+    }
+
     /**
      * This subclass handles the network operations in a new thread.
      * It starts the progress bar, makes the API call, and ends the progress bar.
@@ -205,55 +155,6 @@ public class SignupActivity extends FragmentActivity {
             mDataText.setText(result);
         }
     }
-//    public class ExecuteNetworkOperation extends AsyncTask<Void, Void, String> {
-//
-//        private HttpApiClient apiAuthenticationClient;
-//        private String isValidCredentials;
-//
-//        /**
-//         * Overload the constructor to pass objects to this class.
-//         */
-//        public ExecuteNetworkOperation(HttpApiClient apiAuthenticationClient) {
-//            this.apiAuthenticationClient = apiAuthenticationClient;
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//
-//            // Display the progress bar.
-//            findViewById(R.id.loadingPanel).setVisibility(View.VISIBLE);
-//        }
-//
-//        @Override
-//        protected String doInBackground(Void... params) {
-//            try {
-//                isValidCredentials = apiAuthenticationClient.execute();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(String result) {
-//            super.onPostExecute(result);
-//
-//            // Hide the progress bar.
-//            findViewById(R.id.loadingPanel).setVisibility(View.GONE);
-//
-//            // Login Success
-//            if (isValidCredentials.equals("true")) {
-//                //goToSecondActivity();
-//            }
-//            // Login Failure
-//            else {
-//                Toast.makeText(getApplicationContext(), "Login Failed", Toast.LENGTH_LONG).show();
-//            }
-//        }
-//    }
-
 
 }
 

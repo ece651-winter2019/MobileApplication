@@ -16,15 +16,15 @@ import java.net.URL;
 
 public class HttpComm {
 
-    private String baseUrl;
+    private String baseUrl = "http://192.168.92.210:6543/";
     private String data1;
     private String data2;
+    private String data3;
     private String urlResource;
     private String httpMethod; // GET, POST, PUT, DELETE
     private String urlPath;
     private String lastResponse;
-    private String payload;
-    private HashMap<String, String> parameters;
+    private JSONObject jsonObject;
 
     /**
      *
@@ -33,29 +33,15 @@ public class HttpComm {
      * @param data2 String
      * @param httpmethod String
      */
-    public HttpComm(String  baseUrl, String data1, String data2, String httpmethod) {
+    public HttpComm(String httpmethod, JSONObject jsonObjectData) {
         this.baseUrl = baseUrl;
-        this.data1 = data1;
-        this.data2 = data2;
         this.urlResource = "";
         this.urlPath = "";
         this.httpMethod = httpmethod;
-        parameters = new HashMap<>();
         lastResponse = "";
-        payload = "";
+        jsonObject = jsonObjectData;
         // This is important. The application may break without this line.
         System.setProperty("jsse.enableSNIExtension", "false");
-    }
-
-    private JSONObject buidJsonObject() throws JSONException {
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.accumulate("patient","1");
-        jsonObject.accumulate("systolic",data1);
-        jsonObject.accumulate("diastolic",data2);
-        jsonObject.accumulate("heartRate","90");
-
-        return jsonObject;
     }
 
     private void setPostRequestContent(HttpURLConnection conn, JSONObject jsonObject) throws IOException {
@@ -82,7 +68,7 @@ public class HttpComm {
         String result = "";
         StringBuilder outputStringBuilder = new StringBuilder();
 
-        URL url = new URL(baseUrl);
+        URL url = new URL(baseUrl+urlResource);
 
         // 1. create HttpURLConnection
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -91,7 +77,7 @@ public class HttpComm {
 
         if ( httpMethod.equals("POST")) {
             // 2. build JSON object
-            JSONObject jsonObject = buidJsonObject();
+            //JSONObject jsonObject = buidJsonObject();
 
             // 3. add JSON content to POST request body
             setPostRequestContent(conn, jsonObject);

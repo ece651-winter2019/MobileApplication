@@ -31,6 +31,7 @@ public class UserdataInputActivityTest {
     public void user_signup() throws InterruptedException {
         onView(withId(R.id.systolic)).perform(typeText("120"));
         onView(withId(R.id.diastolic)).perform(typeText("75"));
+        onView(withId(R.id.Heartrate)).perform(typeText("65"));
         onView(withId(R.id.submit_button)).perform(click());
     }
 

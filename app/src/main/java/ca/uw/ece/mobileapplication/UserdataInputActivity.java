@@ -6,12 +6,12 @@ import android.support.v4.app.FragmentActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -28,11 +28,13 @@ public class UserdataInputActivity extends FragmentActivity {
     // UI references.
     private EditText mSystolicView;
     private EditText mDiastolicView;
+    private EditText mHeartrateView;
     private String systolic;
     private String diastolic;
-    private String baseUrl;
+    private String heartrate;
     private String httpmethod;
     private HttpComm http_comm;
+    private  JSONObject jsondata;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,8 @@ public class UserdataInputActivity extends FragmentActivity {
         populateAutoComplete();
 
         mDiastolicView = (EditText) findViewById(R.id.diastolic);
+
+        mHeartrateView = (EditText) findViewById(R.id.Heartrate);
         mDiastolicView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -62,19 +66,20 @@ public class UserdataInputActivity extends FragmentActivity {
 
                     systolic = mSystolicView.getText().toString();
                     diastolic = mDiastolicView.getText().toString();
-                    baseUrl = "http://192.168.101.105:6543/records/";
+                    heartrate = mHeartrateView.getText().toString();
+                    //baseUrl = "http://192.168.92.210:6543/";
                     httpmethod = "POST";
+
+                    jsondata = buidJsonObject();
                     HttpComm http_comm = new HttpComm(
-                            baseUrl
-                            , systolic
-                            , diastolic
-                            , httpmethod
+                            httpmethod
+                            ,jsondata
                     );
 
-                    http_comm.setUrlResource("records");
-                    http_comm.setUrlPath("tliu");
+                    http_comm.setUrlResource("signup");
+                    //http_comm.setUrlPath("tliu");
                     AsyncTask<String, Void, String> execute = new ExecuteNetworkOperation(http_comm);
-                    execute.execute(baseUrl.toString());
+                    execute.execute();
 
                 } catch (Exception ex) {
                 }
@@ -94,6 +99,16 @@ public class UserdataInputActivity extends FragmentActivity {
 
         mDataText = (TextView) findViewById(R.id.data_text);
 
+    }
+
+    private JSONObject buidJsonObject() throws JSONException {
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.accumulate("systolic",systolic);
+        jsonObject.accumulate("diastolic",diastolic);
+        jsonObject.accumulate("heartrate",heartrate);
+
+        return jsonObject;
     }
 
     private void populateAutoComplete() {

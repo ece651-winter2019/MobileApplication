@@ -76,7 +76,7 @@ public class UserdataInputActivity extends FragmentActivity {
                             ,jsondata
                     );
 
-                    http_comm.setUrlResource("signup");
+                    http_comm.setUrlResource("records");
                     //http_comm.setUrlPath("tliu");
                     AsyncTask<String, Void, String> execute = new ExecuteNetworkOperation(http_comm);
                     execute.execute();

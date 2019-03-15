@@ -15,8 +15,12 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.BufferedWriter;
+import java.io.File;
 
 public class UserDataQueryActivity extends AppCompatActivity {
     private View mProgressView;
@@ -83,14 +87,9 @@ public class UserDataQueryActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String ret_msg) {
             mFetchDataTask = null;
-            try {
-                mTextView.setText(ret_msg);
-                ret_data_obj = new JSONObject(ret_msg);
-                saveDataToLocalFile(ret_data_obj);
-                finish();
-            }
-            catch (JSONException je){
-            }
+            mTextView.setText(ret_msg);
+            saveDataToLocalFile(ret_msg);
+            finish();
             showProgress(false);
         }
 
@@ -134,20 +133,31 @@ public class UserDataQueryActivity extends AppCompatActivity {
     }
 
 
-    private void saveDataToLocalFile(JSONObject jsonData)
+    private void saveDataToLocalFile(String Data)
     {
         String filename = "bpData";
-        String fileContents = jsonData.toString();
-        FileOutputStream outputStream;
+        File file = new File(getFilesDir(), filename);
+
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream (file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace ( );
+        }
+
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream);
+
+        BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
 
         try {
-            outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
-            outputStream.write(fileContents.getBytes());
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+            bufferedWriter.write(Data);
+            bufferedWriter.flush ();
+            bufferedWriter.close ();
+            outputStreamWriter.close ();
+            fileOutputStream.close ();
+        } catch (IOException e) {
+            e.printStackTrace ( );
         }
-        return;
     }
 
 

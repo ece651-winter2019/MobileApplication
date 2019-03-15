@@ -91,6 +91,8 @@ public class MainActivity extends AppCompatActivity
             Intent dataInput_intent = new Intent(MainActivity.this, UserdataInputActivity.class );
             startActivity(dataInput_intent);
         } else if (id == R.id.nav_show_graph) {
+           Intent data_list_intent = new Intent(MainActivity.this, UserDataGraphActivity.class );
+            startActivity(data_list_intent);
         } else if (id == R.id.nav_data_list) {
             Intent data_list_intent = new Intent(MainActivity.this, UserDataListActivity.class );
             startActivity(data_list_intent);

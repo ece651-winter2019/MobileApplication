@@ -26,5 +26,5 @@
         android:id="@+id/progressView"
         android:layout_width="match_parent"
         android:layout_height="232dp"
-        android:text="TextView"/>
+        />
 </RelativeLayout>

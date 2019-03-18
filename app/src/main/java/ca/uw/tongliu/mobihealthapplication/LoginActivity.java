@@ -204,7 +204,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     "POST"
                     ,json_obj
             );
-            http_comm.setUrlResource("signup");
+            http_comm.setUrlResource("token-auth");
             mAuthTask = new UserLoginTask(username, password, http_comm);
             mAuthTask.execute((Void) null);
         }

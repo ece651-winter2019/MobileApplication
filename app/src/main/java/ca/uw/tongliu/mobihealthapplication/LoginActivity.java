@@ -336,12 +336,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             int retry_cntr = 0;
             boolean return_val = false;
             String token="";
+            JSONObject json_token = null;
 
             while((retry_cntr < 3) && (return_val == false)) {
                 try {
                     try {
                         token = data_input_http_comm.httpAPI ( );
-                        saveDataToLocalFile(token);
+                        json_token = new JSONObject (token.toString ());
+                        saveDataToLocalFile(json_token.getString ("token") );
                         return_val = true;
                     } catch (JSONException e) {
                         return_val = false;

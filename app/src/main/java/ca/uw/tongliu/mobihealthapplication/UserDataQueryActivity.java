@@ -54,7 +54,8 @@ public class UserDataQueryActivity extends AppCompatActivity {
                 "GET"
                 ,null
         );
-        http_comm.setUrlResource("api/patientrecords?created_on__gte=2019-03-10T00:00:00&created_on__lte=2019-03-20T00:00:00");
+        http_comm.setUrlResource("api/patientrecords?created_on__gte=2019-03-01T00:00:00&created_on__lte=2019-03-19T00:00:00");
+ //       http_comm.setUrlResource("api/patientrecords");
         http_comm.setAuthToken (token);
         mFetchDataTask = new FetchUserDataTask(http_comm);
         mFetchDataTask.execute();

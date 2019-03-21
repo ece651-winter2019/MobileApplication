@@ -9,15 +9,19 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.TextView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -43,12 +47,15 @@ public class UserDataQueryActivity extends AppCompatActivity {
 
     public void FetchUserData(){            // Show a progress spinner, and kick off a background task to
         // perform the user login attempt.
+
         showProgress(false);
+        String token = ReadDataFromLocalFile("auth_token");
         HttpComm http_comm = new HttpComm(
                 "GET"
                 ,null
         );
-        http_comm.setUrlResource("api/patientrecords");
+        http_comm.setUrlResource("api/patientrecords?created_on__gte=2019-03-10T00:00:00&created_on__lte=2019-03-20T00:00:00");
+        http_comm.setAuthToken (token);
         mFetchDataTask = new FetchUserDataTask(http_comm);
         mFetchDataTask.execute();
     }
@@ -69,26 +76,35 @@ public class UserDataQueryActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... params) {
             // params comes from the execute() call: params[0] is the url.
-            try {
+            int retry = 0;
+            final int max_retry = 3;
+            String return_v = null;
+            while ((retry < max_retry) && (return_v == null)){
                 try {
-                    ret_data_string = fetch_data_http_comm.httpAPI();
-                    return ret_data_string;
-                } catch (JSONException e) {
-                    return e.toString();
+                    try {
+                        ret_data_string = fetch_data_http_comm.httpAPI ( );
+                        return_v = ret_data_string;
+                    } catch (JSONException e) {
+                        return_v = null;
+                    }
                 }
-            } catch (IOException e) {
-                return e.toString();
+                catch( IOException io_e){
+                    return_v = null;
+                }
+                retry++;
             }
 
             // TODO: register the new account here.
-            //return true;
+            return return_v;
         }
 
         @Override
         protected void onPostExecute(String ret_msg) {
             mFetchDataTask = null;
-            mTextView.setText(ret_msg);
-            saveDataToLocalFile(ret_msg);
+            if (ret_msg != null) {
+                mTextView.setText (ret_msg);
+                saveDataToLocalFile (ret_msg);
+            }
             finish();
             showProgress(false);
         }
@@ -160,6 +176,37 @@ public class UserDataQueryActivity extends AppCompatActivity {
         }
     }
 
+    private String ReadDataFromLocalFile(String filename)
+    {
+        StringBuffer file_contents = new StringBuffer ();
+        String lineData="";
+        File file = new File(getFilesDir(), filename);
+
+        FileInputStream fileInputStream = null;
+
+        try {
+            fileInputStream = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace ( );
+        }
+
+        if ( fileInputStream != null){
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+            try {
+                lineData = bufferedReader.readLine();
+                while(lineData!=null){
+                    file_contents.append (lineData);
+                    lineData = bufferedReader.readLine();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace ( );
+            }
+        }
+        return file_contents.toString ();
+    }
 
 
 }

@@ -59,7 +59,7 @@ public class UserDataListActivity extends AppCompatActivity {
         // TODO Auto-generated method stub
 
         list=new ArrayList<HashMap<String,String>>();
-        String user_data = ReadDataFromLocalFile();
+        String user_data = ReadDataFromLocalFile("bpData");
 
         String tmp_data = null;
         HashMap<String,String> hashmap=new HashMap<String, String>();
@@ -92,9 +92,8 @@ public class UserDataListActivity extends AppCompatActivity {
         }
 
     }
-    private String ReadDataFromLocalFile()
+    private String ReadDataFromLocalFile(String filename)
     {
-        String filename = "bpData";
         StringBuffer file_contents = new StringBuffer ();
         String lineData="";
         File file = new File(getFilesDir(), filename);

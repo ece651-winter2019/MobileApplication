@@ -24,6 +24,7 @@ public class HttpComm {
     private String urlPath;
     private String lastResponse;
     private JSONObject jsonObject;
+    private String token = null;
 
     /**
      *
@@ -72,9 +73,12 @@ public class HttpComm {
         conn.setDoInput(true);
     }
 
+    public void setAuthToken(String token){
+        this.token = token;
+    }
+
     public String httpAPI() throws IOException, JSONException {
         String result = "";
-        String encoding = "fed2d28daba21316fce0cc557019a8cb947078be";
         StringBuilder outputStringBuilder = new StringBuilder();
 
         URL url = new URL(baseUrl+urlResource+urlPath);
@@ -83,8 +87,8 @@ public class HttpComm {
         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
         conn.setRequestMethod(httpMethod);
         conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-        if ( encoding != null)
-            conn.setRequestProperty ("Authorization","Token "+ encoding);
+        if ( token != null)
+            conn.setRequestProperty ("Authorization","Token "+ token);
 
         if ( httpMethod.equals("POST")) {
             // 2. build JSON object

@@ -32,7 +32,12 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -204,7 +209,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     "POST"
                     ,json_obj
             );
-            http_comm.setUrlResource("token-auth");
+            http_comm.setUrlResource("api/token-auth");
             mAuthTask = new UserLoginTask(username, password, http_comm);
             mAuthTask.execute((Void) null);
         }
@@ -328,27 +333,25 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected Boolean doInBackground(Void... params) {
             // params comes from the execute() call: params[0] is the url.
-            try {
+            int retry_cntr = 0;
+            boolean return_val = false;
+            String token="";
+
+            while((retry_cntr < 3) && (return_val == false)) {
                 try {
-                    data_input_http_comm.httpAPI();
-                    return true;
-                } catch (JSONException e) {
-                    return false;
+                    try {
+                        token = data_input_http_comm.httpAPI ( );
+                        saveDataToLocalFile(token);
+                        return_val = true;
+                    } catch (JSONException e) {
+                        return_val = false;
+                    }
+                } catch (IOException e) {
+                    retry_cntr++;
+                    return_val = false;
                 }
-            } catch (IOException e) {
-                return false;
             }
-
-            //for (String credential : DUMMY_CREDENTIALS) {
-            //    String[] pieces = credential.split(":");
-            //    if (pieces[0].equals(mUsername)) {
-            //        // Account exists, return true if the password matches.
-            //        return pieces[1].equals(mPassword);
-            //    }
-            //}
-
-            // TODO: register the new account here.
-            //return true;
+            return return_val;
         }
 
         @Override
@@ -370,6 +373,32 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
         }
 
+    }
+    private void saveDataToLocalFile(String Data)
+    {
+        String filename = "auth_token";
+        File file = new File(getFilesDir(), filename);
+
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream (file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace ( );
+        }
+
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(fileOutputStream);
+
+        BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+
+        try {
+            bufferedWriter.write(Data);
+            bufferedWriter.flush ();
+            bufferedWriter.close ();
+            outputStreamWriter.close ();
+            fileOutputStream.close ();
+        } catch (IOException e) {
+            e.printStackTrace ( );
+        }
     }
 }
 

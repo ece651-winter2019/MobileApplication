@@ -4,7 +4,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.webkit.WebView;
+
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.LineGraphSeries;
@@ -24,11 +27,16 @@ import java.util.HashMap;
 
 public class UserDataGraphActivity extends AppCompatActivity {
     private String user_data = null;
+    int total_records = 0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate (savedInstanceState);
         setContentView (R.layout.activity_user_data_graph);
         GraphView graph = (GraphView) findViewById(R.id.graph);
+
+        WebView webView = (WebView) findViewById (R.id.graphwebview);
+        webView.loadUrl ("file:///android_asset/heart2.html");
+
         LineGraphSeries<DataPoint> series0 = new LineGraphSeries<>(generateData(0));
         series0.setTitle("Systolic");
         series0.setColor(Color.argb(255, 255, 0, 0));
@@ -48,6 +56,11 @@ public class UserDataGraphActivity extends AppCompatActivity {
         series2.setAnimated (true);
         series2.setThickness (10);
         graph.addSeries(series2);
+        graph.getViewport ().setXAxisBoundsManual (true);
+        graph.getViewport ().setMinX (0);
+        graph.getViewport ().setMaxX (total_records);
+        graph.getLegendRenderer ().setVisible (true);
+        graph.getLegendRenderer ().setAlign (LegendRenderer.LegendAlign.TOP);
 
     }
 
@@ -79,12 +92,14 @@ public class UserDataGraphActivity extends AppCompatActivity {
                 else if(index == 2){
                     tmp_data = recordObject.getDouble ("heart_rate");
                 }
+                if ( tmp_data > 200 ) tmp_data = tmp_data / 10;
                 v = new DataPoint(i, tmp_data);
                 values[i] = v;
             }
         } catch (JSONException e) {
             e.printStackTrace ( );
         }
+        total_records = count;
         return values;
     }
 

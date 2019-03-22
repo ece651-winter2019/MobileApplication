@@ -23,7 +23,7 @@ import java.util.HashMap;
 
 
 public class UserDataGraphActivity extends AppCompatActivity {
-    private String user_data;
+    private String user_data = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate (savedInstanceState);
@@ -33,10 +33,14 @@ public class UserDataGraphActivity extends AppCompatActivity {
         series0.setTitle("Systolic");
         series0.setColor(Color.argb(255, 255, 0, 0));
         series0.setDrawDataPoints(true);
+        series0.setAnimated (true);
+        series0.setThickness (10);
         graph.addSeries(series0);
         LineGraphSeries<DataPoint> series1 = new LineGraphSeries<>(generateData(1));
         series1.setColor(Color.argb(255, 0, 255, 0));
         series1.setTitle("Diastolic");
+        series0.setAnimated (true);
+        series0.setThickness (10);
         graph.addSeries(series1);
         LineGraphSeries<DataPoint> series2 = new LineGraphSeries<>(generateData(2));
         series2.setColor(Color.argb(255, 0, 0, 255));
@@ -49,6 +53,9 @@ public class UserDataGraphActivity extends AppCompatActivity {
 
     private DataPoint[] generateData(int index) {
         user_data = ReadDataFromLocalFile();
+
+        if ( user_data == null)
+            return null;
         JSONArray jsonArray = null;
         try {
             jsonArray = new JSONArray (user_data);
@@ -60,7 +67,7 @@ public class UserDataGraphActivity extends AppCompatActivity {
         int count = jsonArray.length ( );
         DataPoint[] values = new DataPoint[count];
         try {
-            jsonArray = new JSONArray (user_data);
+            //jsonArray = new JSONArray (user_data);
             for (int i = 0; i < count ; i++) {
                 JSONObject recordObject = jsonArray.getJSONObject (i);
                 if ( index == 0 ){
@@ -72,7 +79,7 @@ public class UserDataGraphActivity extends AppCompatActivity {
                 else if(index == 2){
                     tmp_data = recordObject.getDouble ("heart_rate");
                 }
-                v = new DataPoint(i*2, tmp_data);
+                v = new DataPoint(i, tmp_data);
                 values[i] = v;
             }
         } catch (JSONException e) {

@@ -6,7 +6,7 @@
     <string name="nav_header_subtitle">University of Waterloo</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_login">Login</string>
-    <string name="action_setup">Setup</string>
+    <string name="action_exit">Exit</string>
     <string name="title_activity_login">Sign in</string>
     <!-- Strings related to login -->
     <string name="title_activity_DataInput">Data Input</string>

@@ -14,10 +14,13 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.util.Date;
 
 /**
@@ -34,9 +37,14 @@ public class UserdataInputActivity extends FragmentActivity {
     private EditText mSystolicView;
     private EditText mDiastolicView;
     private EditText mHeartrateView;
+    private EditText mHeightView;
+    private EditText mWeightView;
     private String systolic;
     private String diastolic;
     private String heartrate;
+    private String height;
+    private String weight;
+
     private String httpmethod;
     private HttpComm http_comm;
     private  JSONObject jsondata;
@@ -51,6 +59,10 @@ public class UserdataInputActivity extends FragmentActivity {
         mDiastolicView = (EditText) findViewById(R.id.diastolic);
 
         mHeartrateView = (EditText) findViewById(R.id.Heartrate);
+
+        mHeightView = (EditText) findViewById(R.id.Height);
+        mWeightView = (EditText) findViewById(R.id.Weight);
+
         mDiastolicView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -71,9 +83,12 @@ public class UserdataInputActivity extends FragmentActivity {
                     systolic = mSystolicView.getText().toString();
                     diastolic = mDiastolicView.getText().toString();
                     heartrate = mHeartrateView.getText().toString();
+                    height  = mHeightView.getText ().toString ();
+                    weight = mWeightView.getText ().toString ();
                     httpmethod = "POST";
 
                     jsondata = buidJsonObject();
+                    String token = ReadDataFromLocalFile("auth_token");
 
                     HttpComm http_comm = new HttpComm(
                             httpmethod
@@ -81,7 +96,8 @@ public class UserdataInputActivity extends FragmentActivity {
                     );
 
                     http_comm.setUrlResource("api/");
-                    http_comm.setUrlPath("patientrecords/Adam/");
+                    http_comm.setUrlPath("patientrecords");
+                    http_comm.setAuthToken (token);
                     AsyncTask<String, Void, String> execute = new ExecuteNetworkOperation(http_comm);
                     execute.execute();
 
@@ -98,12 +114,11 @@ public class UserdataInputActivity extends FragmentActivity {
     private JSONObject buidJsonObject() throws JSONException {
 
         JSONObject jsonObject = new JSONObject();
-        jsonObject.accumulate("record_id", 2);
         jsonObject.accumulate("bp_systolic",systolic);
         jsonObject.accumulate("bp_diastolic",diastolic);
         jsonObject.accumulate("heart_rate",heartrate);
-        jsonObject.accumulate("weight",180);
-        jsonObject.accumulate("created_on",1);
+        jsonObject.accumulate("height",height);
+        jsonObject.accumulate("weight",weight);
 
         return jsonObject;
     }
@@ -142,6 +157,36 @@ public class UserdataInputActivity extends FragmentActivity {
         }
     }
 
+    private String ReadDataFromLocalFile(String filename)
+    {
+        StringBuffer file_contents = new StringBuffer ();
+        String lineData="";
+        File file = new File(getFilesDir(), filename);
 
+        FileInputStream fileInputStream = null;
+
+        try {
+            fileInputStream = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace ( );
+        }
+
+        if ( fileInputStream != null){
+            InputStreamReader inputStreamReader = new InputStreamReader(fileInputStream);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+            try {
+                lineData = bufferedReader.readLine();
+                while(lineData!=null){
+                    file_contents.append (lineData);
+                    lineData = bufferedReader.readLine();
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace ( );
+            }
+        }
+        return file_contents.toString ();
+    }
 }
 

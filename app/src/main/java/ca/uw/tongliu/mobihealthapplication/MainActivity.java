@@ -16,6 +16,7 @@ import android.webkit.WebView;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileOutputStream;
 
 public class MainActivity extends AppCompatActivity
@@ -40,6 +41,15 @@ public class MainActivity extends AppCompatActivity
 
         WebView webView = (WebView) findViewById (R.id.webView);
         webView.loadUrl ("file:///android_asset/heart.html");
+
+        File file = null;
+        file = new File(getFilesDir(), "auth_token");
+        if (file == null){
+            Intent login_intent = new Intent(MainActivity.this, LoginActivity.class );
+            startActivity(login_intent);
+        }
+
+
     }
 
     @Override
@@ -67,8 +77,8 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_Setup){
-
+        if (id == R.id.action_exit){
+            finish ();
         }
 
         return super.onOptionsItemSelected(item);

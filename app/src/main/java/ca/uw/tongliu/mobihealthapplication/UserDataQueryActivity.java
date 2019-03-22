@@ -25,6 +25,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
+import java.text.SimpleDateFormat;
 
 public class UserDataQueryActivity extends AppCompatActivity {
     private View mProgressView;
@@ -47,15 +51,27 @@ public class UserDataQueryActivity extends AppCompatActivity {
 
     public void FetchUserData(){            // Show a progress spinner, and kick off a background task to
         // perform the user login attempt.
-
+        long oneWeek =  0;
+        long oneMonth =  0;
+        oneWeek = 1000 * 3600 * 24 * 7;
+        oneMonth = 1000 * 3600 * 24 * 30;
+        String start_date_time = null;
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        df.setTimeZone (TimeZone.getTimeZone("UTC"));
+        Date currentTime = Calendar.getInstance().getTime ();
+        String end_date_time = df.format (currentTime);
+        String url_path = null;
+        start_date_time = df.format (new Date (currentTime.getTime()- oneWeek ));
         showProgress(false);
         String token = ReadDataFromLocalFile("auth_token");
         HttpComm http_comm = new HttpComm(
                 "GET"
                 ,null
         );
-        http_comm.setUrlResource("api/patientrecords?created_on__gte=2019-03-01T00:00:00&created_on__lte=2019-03-19T00:00:00");
- //       http_comm.setUrlResource("api/patientrecords");
+//        http_comm.setUrlResource("api/patientrecords?created_on__gte=2019-03-01T00:00:00&created_on__lte=2019-03-21T18:31:00");
+        http_comm.setUrlResource("api/patientrecords");
+        url_path = "?created_on__gte="+start_date_time+"&created_on__lte="+end_date_time;
+        http_comm.setUrlPath (url_path);
         http_comm.setAuthToken (token);
         mFetchDataTask = new FetchUserDataTask(http_comm);
         mFetchDataTask.execute();
@@ -103,7 +119,7 @@ public class UserDataQueryActivity extends AppCompatActivity {
         protected void onPostExecute(String ret_msg) {
             mFetchDataTask = null;
             if (ret_msg != null) {
-                mTextView.setText (ret_msg);
+                //mTextView.setText (ret_msg);
                 saveDataToLocalFile (ret_msg);
             }
             finish();

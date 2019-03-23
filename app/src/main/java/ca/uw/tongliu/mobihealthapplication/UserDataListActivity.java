@@ -24,9 +24,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.TimeZone;
 
 public class UserDataListActivity extends AppCompatActivity {
 
@@ -58,6 +62,7 @@ public class UserDataListActivity extends AppCompatActivity {
     private void populateList() {
         // TODO Auto-generated method stub
 
+        int char_index = 0;
         list=new ArrayList<HashMap<String,String>>();
         String user_data = ReadDataFromLocalFile("bpData");
 
@@ -76,7 +81,26 @@ public class UserDataListActivity extends AppCompatActivity {
                 JSONObject recordObject = jsonArray.getJSONObject (i);
                 hashmap=new HashMap<String, String>();
                 tmp_data = recordObject.getString ("created_on");
-                hashmap.put(FIRST_COLUMN, tmp_data);
+                //SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                char_index = tmp_data.indexOf ("-");
+                String year = tmp_data.substring (0, char_index);
+                String sub_tmp = tmp_data.substring (char_index+1);
+                char_index = sub_tmp.indexOf ("-");
+                String mm = sub_tmp.substring (0, char_index);
+                tmp_data = sub_tmp.substring (char_index+1);
+                char_index = tmp_data.indexOf ("T");
+                String dd = tmp_data.substring (0,char_index);
+                sub_tmp = tmp_data.substring (char_index+1);
+                char_index = sub_tmp.indexOf (":");
+                String hh = sub_tmp.substring (0, char_index);
+                tmp_data = sub_tmp.substring (char_index+1);
+                char_index = tmp_data.indexOf (":");
+                String min = tmp_data.substring (0, char_index);
+                String ss = tmp_data.substring (char_index+1, char_index+3);
+
+
+
+                hashmap.put(FIRST_COLUMN, (mm+"-"+dd+" "+hh+":"+min));
                 tmp_data = recordObject.getString ("bp_systolic");
                 hashmap.put(SECOND_COLUMN, tmp_data);
                 tmp_data = recordObject.getString ("bp_diastolic");

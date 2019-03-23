@@ -78,7 +78,33 @@ public class ListViewAdapter extends BaseAdapter{
         }
 
         HashMap<String, String> map=list.get(position);
-        holder.txtFirst.setText(map.get(FIRST_COLUMN));
+        holder.txtFirst.setText (map.get (FIRST_COLUMN));
+        if ( position > 0) {
+            String str_systolic = map.get (SECOND_COLUMN).toString ( );
+            int systolic = Integer.parseInt (str_systolic);
+            if (systolic > 140 || systolic < 90) {
+                holder.txtSecond.setTextColor (0xFFFF0000);
+            }
+            else{
+                holder.txtSecond.setTextColor (0xFF007F00);
+            }
+            String str_diastolic = map.get (THIRD_COLUMN).toString ( );
+            int diastolic = Integer.parseInt (str_diastolic);
+            if (diastolic > 90 || systolic < 60) {
+                holder.txtThird.setTextColor (0xFFFF0000);
+            }
+            else{
+                holder.txtThird.setTextColor (0xFF007F00);
+            }
+            String heart_rate = map.get (FOURTH_COLUMN).toString ( );
+            int heartRate = Integer.parseInt (heart_rate);
+            if (heartRate > 120 || systolic < 50) {
+                holder.txtFourth.setTextColor (0xFFFF0000);
+            }
+            else{
+                holder.txtFourth.setTextColor (0xFF007F00);
+            }
+        }
         holder.txtSecond.setText(map.get(SECOND_COLUMN));
         holder.txtThird.setText(map.get(THIRD_COLUMN));
         holder.txtFourth.setText(map.get(FOURTH_COLUMN));
